@@ -3438,6 +3438,12 @@ static int collect_renames(struct merge_options *opt,
 	return clean;
 }
 
+// Copy from merge-recursive
+static int merge_detect_rename(struct merge_options *opt)
+{
+	return (opt->detect_renames >= 0) ? opt->detect_renames : 1;
+}
+
 static int detect_and_process_renames(struct merge_options *opt)
 {
 	struct diff_queue_struct combined = { 0 };
@@ -3445,7 +3451,14 @@ static int detect_and_process_renames(struct merge_options *opt)
 	struct strmap collisions[3];
 	int need_dir_renames, s, i, clean = 1;
 	unsigned detection_run = 0;
-
+	
+	if (!merge_detect_rename(opt))
+	{
+		renames->cached_pairs_valid_side = 0;
+		renames->redo_after_renames = 0;
+		goto cleanup;
+	}
+	
 	if (!possible_renames(renames))
 		goto cleanup;
 
